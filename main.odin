@@ -1,4 +1,4 @@
-package sdl_test
+package minesweeper
 
 import "core:fmt"
 import "core:math"
@@ -380,14 +380,16 @@ input :: proc(state: ^State) -> bool {
                                     }
                                 }
                         } else {
-                            if cell.is_flagged {
-                                cell.is_flagged = false;
-                                state.flagged_cells -= 1;
-                            } else {
-                                cell.is_flagged = true;
-                                state.flagged_cells += 1;
+                            if state.generated_level {
+                                if cell.is_flagged {
+                                    cell.is_flagged = false;
+                                    state.flagged_cells -= 1;
+                                } else {
+                                    cell.is_flagged = true;
+                                    state.flagged_cells += 1;
 
-                                state.check_for_win = true;
+                                    state.check_for_win = true;
+                                }
                             }
                         }
                     }
@@ -454,6 +456,7 @@ update :: proc(state: ^State) {
         state.check_for_win = false;
     }
 
+    /*
     if state.lost && !state.revealed_all {
         // Reveal rest of the board.
         for x: i32 = 0; x < state.width; x += 1 {
@@ -466,6 +469,7 @@ update :: proc(state: ^State) {
 
         state.revealed_all = true;
     }
+    */
 }
 
 draw_text :: proc(renderer: ^sdl.Renderer, state: ^State, message: cstring, x: i32, y: i32) {
@@ -485,6 +489,8 @@ render :: proc(renderer: ^sdl.Renderer, state: ^State) {
     sdl.set_render_draw_color(renderer, 0, 0, 0, 255);
     sdl.render_clear(renderer);
 
+    game_ended := state.won || state.lost;
+
     for x: i32 = 0; x < state.width; x += 1 {
         for y: i32 = 0; y < state.height; y += 1 {
             index := y * state.width + x;
@@ -500,21 +506,31 @@ render :: proc(renderer: ^sdl.Renderer, state: ^State) {
                 sdl.set_render_draw_color(renderer, 120, 120, 120, 255);
             }
 
+            if game_ended {
+                if cell.is_flagged && !cell.is_bomb {
+                    sdl.set_render_draw_color(renderer, 120, 0, 120, 255);
+                }
+            }
+
             sdl.render_fill_rect(renderer, &cell.rect);
 
-            if cell.is_revealed && !cell.is_bomb && cell.adjacent_bomb_count > 0{
+            // Draw adjacent bomb counts
+            if cell.is_revealed && !cell.is_bomb && cell.adjacent_bomb_count > 0 {
                 text := strings.clone_to_cstring(fmt.tprintf("%d", cell.adjacent_bomb_count));
                 draw_text(renderer, state, text, cell.rect.x + state.size/2, cell.rect.y + state.size/5);
             }
 
+            // Draw flags
             if cell.is_flagged {
                 text := strings.clone_to_cstring(fmt.tprintf("!"));
                 draw_text(renderer, state, text, cell.rect.x + state.size/2, cell.rect.y + state.size/5);
             }
 
+            // Outline each cell in black
             sdl.set_render_draw_color(renderer, 0, 0, 0, 255);
             sdl.render_draw_rect(renderer, &cell.rect);
 
+            // Outline hovered cell in white
             if state.is_any_hovered {
                 if index == state.hovered {
                     sdl.set_render_draw_color(renderer, 200, 200, 200, 255);
