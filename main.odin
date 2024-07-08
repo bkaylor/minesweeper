@@ -10,9 +10,9 @@ import sdl "shared:odin-sdl2"
 import sdl_ttf "shared:odin-sdl2/ttf"
 import sdl_image "shared:odin-sdl2/image"
 
-DEFAULT_BOMBS :: 45;
-DEFAULT_WIDTH :: 15;
-DEFAULT_HEIGHT :: 15;
+DEFAULT_BOMBS :: 99;
+DEFAULT_WIDTH :: 30;
+DEFAULT_HEIGHT :: 16;
 
 MAX_CELLS :: 50*50;
 
@@ -77,7 +77,7 @@ main :: proc() {
     sdl.init(sdl.Init_Flags.Everything);
 	state.window = sdl.create_window("Minesweeper", 
                                      i32(sdl.Window_Pos.Undefined), i32(sdl.Window_Pos.Undefined), 
-                                     800, 600, 
+                                     1100, 600, 
                                      sdl.Window_Flags(sdl.Window_Flags.Resizable));
 
 	renderer := sdl.create_renderer(state.window, -1, sdl.Renderer_Flags(sdl.Renderer_Flags.Present_VSync));
